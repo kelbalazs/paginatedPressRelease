@@ -8,8 +8,7 @@
 
         <div id="title"> {{ item.title }}</div>
         
-        <div class="article"><button {item.details_en}> Explore More</button>
-        </div>
+      
       </li>
     </paginate>
     <paginate-links

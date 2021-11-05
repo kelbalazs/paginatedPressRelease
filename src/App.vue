@@ -1,14 +1,24 @@
 <template>
   <div id="app">
-    <paginate ref="paginator" class="flex-container" name="items" :list="items">
+    <div class="search-wrapper">
+    <input type="text" 
+    class="search-bar" 
+    v-model="search"
+    placeholder="Search in the titles"/>
+      
+  </div>
+    <paginate ref="paginator" class="flex-container" name="items" :list="filteredArticles">
       <li v-for="(item, index) in paginated('items')" :key="index" class="flex-item">
       <div id="image"><img :src="item.image && item.image.file" /></div>
 
-        <div id="date">{{ item.pub_date }}</div>
+        <div id="date">{{ formatDate(item.pub_date) }}</div>
 
         <div id="title"> {{ item.title }}</div>
+
+        <div id="article"  v-html="item.details_en" target="blank">Explore More</div>
+
         
-      
+       
       </li>
     </paginate>
     <paginate-links
@@ -21,11 +31,15 @@
 
 <script>
 import axios from "axios";
+import moment from "moment"
+
+
 export default {
   data() {
     return {
       items: [],
       paginate: ["items"],
+      search:'',
     };
   },
   created() {
@@ -35,15 +49,39 @@ export default {
     loadPressRelease() {
       axios
         .get(
-          `https://zbeta2.mykuwaitnet.net/backend/en/api/v2/media-center/press-release/?page_size=61&type=5`
+          `https://zbeta2.mykuwaitnet.net/backend/en/api/v2/media-center/press-release/?page_size=61&type=5`,{params}
+
         )
         .then((response) => {
           this.items = response.data.results;
         });
     },
+    formatDate(date) {
+      return moment(date).format("ll");
+    },
+    openArticle(){
+        window.open(this.items.details_en, "blank");
+      },
+  
+  
+  
+
   },
+    computed : {
+    axiosParameters() {
+      const params = new SearchParams()
+    if (!this.search) {
+        return this.items;
+    }
+    return this.items.filter(item => {
+        return item.title.includes(this.search);
+    })
+    
+}
+  }
 };
 </script>
+
 <style>
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
@@ -69,22 +107,56 @@ ul.flex-container {
 }
 li img {
   display: initial;
-  height: 100px;
-}
+  height: 250px;
+} 
 .flex-item {
-  background:turquoise;
+  background:RGB(167,210,203);
   width: calc(100% / 3.5);
   padding: 5px;
   height: auto;
   margin-top: 10px;
-  color: rgb(155, 25, 90);
+  color: black;
   font-weight: bold;
   text-align: center;
   box-shadow: thistle;
 }
-.downloads {
-  margin-top: 10px;
+
+#title {
+  font-size: 20px;
+  font-style: italic;
+  font-weight: bold;
 }
+
+#date {
+  font-size: 30px;
+}
+
+.search-wrapper{
+  width: 120%;
+  margin-bottom: 20px;
+  margin-left: 25px;
+
+}
+
+#article {
+  font-size: 10px;
+}
+.search-bar {
+  border: 1px solid #ccc;
+  outline: 0;
+  border-radius: 10px;
+  width: 50%;
+  margin-left: 10px;
+  padding: 0.5rem;
+}
+.search-bar:focus {
+  box-shadow: 0 0 15px 5px #b0e0ee;
+  border: 2px solid #bebede;
+}
+.search-box:not(:valid) ~ .close-icon {
+  display: none;
+}
+
 ul.paginate-links.items li {
   display: inline-block;
   margin: 5px;

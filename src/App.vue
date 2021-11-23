@@ -6,6 +6,22 @@
     @input="searchByTitle"
     placeholder="Search in the titles"/>
   </div>
+  <div class="yearfilter">
+          <label>Choose the Year</label><br />
+          <span class="filter-year" v-for="(item, index) in filteredByYear" :key="index">{{item}}
+            <button class="filter-clear-button" type="button" @click.prevent="clearfilter(index)">
+            </button>
+          </span>
+          <select class="selectyear" v-model="selectedyear" @change="onChangeyear">
+            <option value="">Select</option>
+            <option :value="2021">2021</option>
+            <option :value="2020">2020</option>
+            <option :value="2019">2019</option>
+            <option :value="2018">2018</option>
+            <option :value="2017">2017</option>
+            <option :value="2016">2016</option>
+          </select>
+        </div>
     <paginate ref="paginator" class="flex-container" name="items" :list="items">
       <li v-for="(item, index) in paginated('items')" :key="index" class="flex-item">
         <div id="image"><img :src="item.image && item.image.file" /></div>
@@ -25,7 +41,6 @@
 <script>
 import axios from 'axios'
 import moment from 'moment'
-
 export default {
   data() {
     return {
@@ -33,7 +48,9 @@ export default {
       paginate: ["items"],
       search:'',
       params: '',
-      debounce: ''
+      debounce: '',
+      selectedyear: '',
+      filteredByYear: []
     };
   },
   created() {
@@ -49,6 +66,7 @@ export default {
     formatDate(date) {
       return moment(date).format("ll");
     },
+
     searchByTitle(event) {
       clearTimeout(this.debounce)
       this.debounce = setTimeout(() => {
@@ -56,7 +74,20 @@ export default {
         this.loadPressRelease()
       }, 600)
     },
+
+     onChangeyear () {
+      if (this.filteredByYear.indexOf(this.selectedyear) == -1) {
+        this.filteredByYear.push(this.selectedyear)
+        this.params = `&q=${this.search}&years=${this.filteredByYear.join(',')}`
+        this.loadPressRelease()
+      }
+     },
+     
+     clearfilter (index) {
+      this.filteredByYear.splice(index, 1)
+     }
   }
+  
 };
 </script>
 
@@ -98,24 +129,19 @@ li img {
   text-align: center;
   box-shadow: thistle;
 }
-
 #title {
   font-size: 20px;
   font-style: italic;
   font-weight: bold;
 }
-
 #date {
   font-size: 30px;
 }
-
 .search-wrapper{
   width: 120%;
   margin-bottom: 20px;
   margin-left: 25px;
-
 }
-
 #article {
   font-size: 10px;
 }
@@ -134,7 +160,6 @@ li img {
 .search-box:not(:valid) ~ .close-icon {
   display: none;
 }
-
 ul.paginate-links.items li {
   display: inline-block;
   margin: 5px;
